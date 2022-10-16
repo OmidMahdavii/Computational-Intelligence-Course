@@ -1,10 +1,10 @@
 # Lab 1
 
-#### Task
+### Task
 
 Given a number ***N*** and some lists of integers ***P = (L<sub>0</sub>, L<sub>1</sub>, L<sub>2</sub>, ..., L<sub>n</sub>)***,  determine, if possible, ***S = (L<sub>S0</sub>, L<sub>S1</sub>, L<sub>S2</sub>, ..., L<sub>Sn</sub>)*** such that each number between ***0*** and ***N - 1*** appears in at least one list.
 
-#### Final Results
+### Final Results
 
 Solution for N=5: Weight: 5, Nodes visited: 2
 
@@ -20,7 +20,7 @@ Solution for N=500: Weight: , Nodes visited:
 
 Solution for N=1000: Weight: , Nodes visited:
 
-#### Algorithm Description
+### Algorithm Description
 
 The problem contains a list containing several inner lists with different lengths. In the beginning, one inner list is extracted. Then it is checked if the same list has been analyzed before (in case of similar inner lists). After that, the selected inner list is added to the (empty) state and an ad-hoc sort is implemented on the outer list. First, the list is sorted by the increasing number of common elements with the state. In case of an equal number of common elements, the list with a larger length goes first. I believe that this algorithm helps to find the minimum weight sooner. Then a recursive function is called for each state. The function compares the current state with the goal state and compares the weight with the minimum weight so far in case of success. Otherwise, the first element from the sorted outer list is popped and appended to the state and the function is called again. 
 
