@@ -3,7 +3,7 @@ from functools import reduce
 from time import perf_counter_ns
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 minWeight = None
 totalNodes = 0
