@@ -51,7 +51,7 @@ def mySolution(n, state, goalState, lists):
     # >= n should be > n
     # because a solution with n lists could still be an optimal solution
     # n = 3 ==> sol = [[0],[1],[2]] ==> len(sol) == 3
-    if len(state) >= n or sortedLists[0] in state:
+    if len(state) > n or sortedLists[0] in state:
         return
     totalNodes += 1
     state.append(sortedLists[0])
