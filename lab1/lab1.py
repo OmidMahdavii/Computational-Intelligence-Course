@@ -36,13 +36,14 @@ def adHocSort(state, lists):
 
 
 def computeWeight(lists: list):
-    # longest list with minimum number of common elements
     return reduce(
         lambda x, y: x + len(y) if isinstance(x, int) else len(x) + len(y), lists
     )
 
 
 # probably you don't need recursion
+# and it is better to use iteration
+# which is less computational intense
 def mySolution(n, state, goalState, lists):
     global minWeight, finalList, totalNodes
     # declare theme globally instead
