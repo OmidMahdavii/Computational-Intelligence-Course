@@ -1,25 +1,34 @@
 import random
-import itertools
 from functools import reduce
+from time import perf_counter_ns
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+minWeight = None
+totalNodes = 0
+finalList = []
+
 
 def problem(N, seed=None):
     random.seed(seed)
     return [
-        list(set(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2))))
+        list(
+            set(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2)))
+        )
         for n in range(random.randint(N, N * 5))
     ]
 
 
+# more efficient to use sets properties like intersection
+# instead of for loop with checks
 def findCommonElements(a: set, b: list):
-    commonElements = 0
-    for element in a:
-        if element in b:
-            commonElements += 1
-    return commonElements
+    return len(a.intersection(b))
 
 
+# don't need itertools to convert to a set
 def listToSet(L):
-    return set(itertools.chain([element for sublist in L for element in sublist]))
+    return set(element for sublist in L for element in sublist)
 
 
 def adHocSort(state, lists):
@@ -27,12 +36,20 @@ def adHocSort(state, lists):
 
 
 def computeWeight(lists: list):
-    return reduce(lambda x, y: x + len(y) if isinstance(x, int) else len(x) + len(y), lists)
+    # longest list with minimum number of common elements
+    return reduce(
+        lambda x, y: x + len(y) if isinstance(x, int) else len(x) + len(y), lists
+    )
 
 
+# probably you don't need recursion
 def mySolution(n, state, goalState, lists):
-    global minWeight, finalList, totalNodes 
+    global minWeight, finalList, totalNodes
+    # declare theme globally instead
     sortedLists = adHocSort(listToSet(state), lists)
+    # >= n should be > n
+    # because a solution with n lists could still be an optimal solution
+    # n = 3 ==> sol = [[0],[1],[2]] ==> len(sol) == 3
     if len(state) >= n or sortedLists[0] in state:
         return
     totalNodes += 1
@@ -43,33 +60,26 @@ def mySolution(n, state, goalState, lists):
             minWeight = weight
             finalList = state
         return
-    else:
-        newLists = sortedLists[1:]
-        mySolution(n, state, goalState, newLists)
+    # don't need else after return
+    newLists = sortedLists[1:]
+    mySolution(n, state, goalState, newLists)
     return
 
 
-if __name__ == '__main__':
-    n = 100
+if __name__ == "__main__":
+    start = perf_counter_ns()
+    n = 10
     myLists = problem(n, 42)
     goalState = set(range(n))
-    minWeight = None
-    totalNodes = 0
-    finalList = []
     analyzedLists = []
     for l in myLists:
-        if l in analyzedLists:
-            continue
-        analyzedLists.append(l)
-        state = []
-        state.append(l)
-        sortedLists = adHocSort(listToSet(state), myLists)
-        mySolution(n, state, goalState, sortedLists)
-        if minWeight == n:
-            break
-    # print(finalList)
-    print(f'Weight: {minWeight}, Nodes visited: {totalNodes}')
-
-
-
-
+        if l not in analyzedLists:
+            analyzedLists.append(l)
+            state = [l]
+            sortedLists = adHocSort(set(l), myLists)
+            mySolution(n, state, goalState, sortedLists)
+            if minWeight == n:
+                break
+    end = perf_counter_ns()
+    logging.info(f"Weight: {minWeight}, Nodes visited: {totalNodes}")
+    logging.debug(f"time elapsed : {end - start} ns")
