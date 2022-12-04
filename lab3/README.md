@@ -27,5 +27,5 @@ The task is implemented by the following people:
 In this project, every single evaluation is the win ratio after 20 matches with `randomAgent`. The result consists of a list containing 10 different single evaluations for each agent.
 
 * Task 3.1: `resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]`
-* Task 3.2: `resultHistory: [0.95, 0.7, 0.75, 0.85, 0.85, 0.85, 0.85, 0.9, 0.75, 0.65]`
+* Task 3.2: `resultHistory: [0.55, 0.7, 0.8, 0.5, 0.9, 0.6, 0.65, 0.55, 0.75, 0.6]`
 

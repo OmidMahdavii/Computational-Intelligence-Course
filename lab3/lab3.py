@@ -136,7 +136,8 @@ def evolvedRules(genome: list) -> Callable:
                 # remove the maximum elements from the selected row
                 num_objects = state.rows[row] if (state.k is None or state.rows[row] <= state.k) else state.k
             elif random.random() < genome[7]:
-                num_objects = 1
+                # remain a single element in the row
+                num_objects = state.rows[row] - 1 if (state.k is None or state.rows[row] - 1 <= state.k) else state.k
             else:
                 num_objects = math.floor(state.rows[row] * genome[8])
         else:
@@ -144,7 +145,8 @@ def evolvedRules(genome: list) -> Callable:
                 # remove the maximum elements from the selected row
                 num_objects = state.rows[row] if (state.k is None or state.rows[row] <= state.k) else state.k
             elif random.random() < genome[10]:
-                num_objects = 1
+                # remain a single element in the row
+                num_objects = state.rows[row] - 1 if (state.k is None or state.rows[row] - 1 <= state.k) else state.k
             else:
                 num_objects = math.floor(state.rows[row] * genome[11])
         
@@ -238,11 +240,11 @@ if __name__ == "__main__":
     # simulate(humanAgent, randomAgent)
 
     ## Task 3.1:
-    resultHistory = []
-    for i in range(10):
-        result = evaluate(expertSystem, randomAgent)
-        resultHistory.append(result)
-    print(resultHistory)
+    # resultHistory = []
+    # for i in range(10):
+    #     result = evaluate(expertSystem, randomAgent)
+    #     resultHistory.append(result)
+    # print(resultHistory)
     
     ## resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     
@@ -250,11 +252,11 @@ if __name__ == "__main__":
     # rules = GA(50, 10, 30)
     # print(rules)
     # rules = [0.126, 0.372, 0.27, 0.074, 0.948, 0.128, 0.203, 0.733, 0.516, 0.982, 0.523, 0.549]
-    rules = [0.249, 0.401, 0.453, 0.103, 0.89, 0.187, 0.616, 0.630, 0.571, 0.897, 0.196, 0.193]
+    rules = [0.708, 0.431, 0.43000000000000005, 0.693, 0.649, 0.78, 0.458, 0.575, 0.047000000000000014, 0.938, 0.349, 0.148]
     resultHistory = []
     for i in range(10):
         result = evaluate(evolvedRules(rules), randomAgent)
         resultHistory.append(result)
     print(resultHistory)
     
-    ## resultHistory: [0.95, 0.7, 0.75, 0.85, 0.85, 0.85, 0.85, 0.9, 0.75, 0.65]
+    ## resultHistory: [0.55, 0.7, 0.8, 0.5, 0.9, 0.6, 0.65, 0.55, 0.75, 0.6]
