@@ -13,6 +13,7 @@ The task is implemented by the following people:
 
 * **SeyedOmid Mahdavi s299837**
 * **Zohreh Lahijani Amiri s300451**
+* **Shayan Taghinezhad Roudbaraki S301425**
 
 ### Algorithm Description
 
@@ -22,10 +23,16 @@ The task is implemented by the following people:
 
   `rules = [0.708, 0.431, 0.43000000000000005, 0.693, 0.649, 0.78, 0.458, 0.575, 0.047000000000000014, 0.938, 0.349, 0.148]`
 
+* Task 3.3: `minMax` agent makes a move according to the minimax algorithm until a maximum depth equal to `MAX_DEPTH`
+
+* Task 3.4: `RLAgent` agent makes a move according to the policy computed based on reinforcement learning.
+
 ### Evaluations
 
 In this project, every single evaluation is the win ratio after 20 matches with `randomAgent`. The result consists of a list containing 10 different single evaluations for each agent.
 
 * Task 3.1: `resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]`
 * Task 3.2: `resultHistory: [0.55, 0.7, 0.8, 0.5, 0.9, 0.6, 0.65, 0.55, 0.75, 0.6]`
+* Task 3.3: `resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]`
+* Task 3.4: `resultHistory: [0.65, 0.75, 0.85, 0.7, 0.85, 0.9, 0.75, 0.85, 0.95, 0.8]`
 

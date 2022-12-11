@@ -1,16 +1,15 @@
 from collections import namedtuple
-from itertools import accumulate
+from itertools import accumulate, product
 from operator import xor
 from typing import Callable
 import random
 from copy import deepcopy
 import math
 from functools import cache
-import time
 import numpy as np
 
 NUM_MATCHES = 20
-NIM_SIZE = 3
+NIM_SIZE = 5
 MAX_DEPTH = 10
 depth = 0
 NimPly = namedtuple('NimPly', 'row, num_objects')
@@ -70,7 +69,6 @@ def cookStatus(state: Nim) -> dict:
         tmp = deepcopy(state)
         tmp.nimming(m)
         bruteForce.append((m, tuple(tmp._rows)))
-        # bruteForce.append((m, computeNimSum(tmp)))
     cooked["bruteForce"] = bruteForce
 
     return cooked
@@ -169,7 +167,7 @@ def evolvedRules(genome: list) -> Callable:
 
 
 def GA(populationSize: int, offspringSize: int, numGenerations: int) -> list:
-    """genetic algorithm used to evolve the rules related to the evolvedRules agent"""
+    """ genetic algorithm used to evolve the rules related to the evolvedRules agent """
     Individual = namedtuple('Individual', ['genome', 'fitness'])
     population = list()
 
@@ -218,9 +216,9 @@ def GA(populationSize: int, offspringSize: int, numGenerations: int) -> list:
 
 
 def minMax(state: Nim) -> NimPly:
-    
+    """ the agent related to the task 3.3 """
     @cache
-    def func1(state: Nim, ply: NimPly, myTurn: bool):
+    def estimate(state: Nim, ply: NimPly, myTurn: bool):
         global depth
         depth += 1
         stateCopy = deepcopy(state)
@@ -230,6 +228,7 @@ def minMax(state: Nim) -> NimPly:
         if sum(stateCopy.rows) == 0:
             return int(not myTurn) * 2
         
+        # return 1 if the maximum depth is reached and I am not in a deterministic state
         if depth > MAX_DEPTH:
             return 1
         
@@ -237,31 +236,44 @@ def minMax(state: Nim) -> NimPly:
 
         result = []
         for newPly in possiblePlies:
-            score = func1(state=stateCopy, ply=newPly, myTurn=not myTurn)
+            score = estimate(state=stateCopy, ply=newPly, myTurn=not myTurn)
             depth -= 1
             result.append(score)
+            # alpha beta pruning
             if (myTurn and score == 2) or (not myTurn and score == 0):
                 return score
         return (max if myTurn else min) (result)
     
     possiblePlies = cookStatus(state)["possibleMoves"]
-    return max((func1(state=state, ply=newPly, myTurn=False), newPly) for newPly in possiblePlies)[1]
+    return max((estimate(state=state, ply=newPly, myTurn=False), newPly) for newPly in possiblePlies)[1]
 
 
-def RLAgent(state: Nim) -> NimPly:
+def RLAgent(G: dict) -> NimPly:
+    """ the agent related to the task 3.4 """
+    def agent(state: Nim):
+        possibleStates = cookStatus(state)["bruteForce"]
+        ply = max(((s[0], G[s[1]]) for s in possibleStates if s[1] in G), key=lambda i: i[1])[0]
+        return NimPly(ply[0], ply[1])
+    
+    return agent
 
+
+def learning(state: Nim) -> dict:
+    """ reinforcement learning process used to calculate the policy """
     class Agent(object):
-        def __init__(self, state, alpha=0.15, random_factor=0.2):  # 80% explore, 20% exploit
+        def __init__(self, state, alpha=0.15, random_factor=0.2):
             self.state_history = [(tuple(state._rows), 0)]  # state, reward
             self.alpha = alpha
             self.random_factor = random_factor
             self.G = {}
-            # self.init_reward(states)
+            self.init_reward(state)
 
-        # def init_reward(self, states):
-        #     for i, row in enumerate(states):
-        #         for j, col in enumerate(row):
-        #             self.G[(j, i)] = np.random.uniform(low=1.0, high=0.1)
+        def init_reward(self, state):
+            r = []
+            for i in state._rows:
+                r.append(list(range(i+1)))
+            for i in product(*r):
+                self.G[i] = np.random.uniform(low=1.0, high=0.1)
 
         def choose_action(self, state, allowedMoves):
             maxG = -10e15
@@ -274,15 +286,9 @@ def RLAgent(state: Nim) -> NimPly:
                 for action in allowedMoves:
                     stateCopy = deepcopy(state)
                     stateCopy.nimming(action)
-                    if (tuple(stateCopy._rows)) in self.G:
-                        if self.G[tuple(stateCopy._rows)] >= maxG:
-                            next_move = action
-                            maxG = self.G[tuple(stateCopy._rows)]
-                    else:
-                        self.G[tuple(stateCopy._rows)] = np.random.uniform(low=1.0, high=0.1)
-                        if self.G[tuple(stateCopy._rows)] >= maxG:
-                            next_move = action
-                            maxG = self.G[tuple(stateCopy._rows)]
+                    if self.G[tuple(stateCopy._rows)] >= maxG:
+                        next_move = action
+                        maxG = self.G[tuple(stateCopy._rows)]
 
             return next_move
 
@@ -293,68 +299,33 @@ def RLAgent(state: Nim) -> NimPly:
             target = 0
 
             for prev, reward in reversed(self.state_history):
-                if prev in self.G:
-                    self.G[prev] = self.G[prev] + self.alpha * (target - self.G[prev])
-                    target += reward
+                self.G[prev] = self.G[prev] + self.alpha * (target - self.G[prev])
+                target += reward
 
             self.state_history = []
 
-            self.random_factor -= 10e-5  # decrease random factor each episode of play
+            self.random_factor -= 10e-5  # decrease random factor each episode of pla
 
-    def func1():
-        state = Nim(NIM_SIZE)
-        agent = Agent(state, alpha=0.1, random_factor=0.3)
-        # moveHistory = []
-        # indices = []
+    agent = Agent(state, alpha=0.2, random_factor=0.5)
 
-        for i in range(5000):
-            
-            while state:
-                possiblePlies = cookStatus(state)["possibleMoves"]
-                action = agent.choose_action(state, possiblePlies)
-                state.nimming(action)
-                # give a -10 reward when loosing, -1 when not in a determined situation, and 0 when winning
-                if all(i <= 1 for i in state._rows):
-                    reward = -0.1 if sum(state._rows) % 2 == 0 else -8
-                # elif sum(i > 0 for i in state._rows) == 2:
-                #     reward = -0.01
-                elif sum(i > 0 for i in state._rows) == 1:
-                    reward = -10
-                elif sum(i > 1 for i in state._rows) == 1:
-                    reward = -0.1
-                else:
-                    reward = -0.5 * int(sum(state._rows) > 0)
+    for i in range(5000):
+            stateCopy = deepcopy(state)
+            while stateCopy:
+                possiblePlies = cookStatus(stateCopy)["possibleMoves"]
+                action = agent.choose_action(stateCopy, possiblePlies)
+                stateCopy.nimming(action)
+                # give a 0 reward if I am winning, -10 if I am losing, and -0.5 if not in a deterministic state
+                reward = -10 if sum(i > 0 for i in stateCopy._rows) == 1 else -0.5 * int(sum(stateCopy._rows) > 0)
                 
-                # reward = -10 if sum(i > 0 for i in state._rows) == 1 else -1 * int(sum(state._rows) > 0)
-                agent.update_state_history(state, reward)
-                if sum(i > 0 for i in state._rows) <= 1:
+                agent.update_state_history(stateCopy, reward)
+
+                if sum(stateCopy._rows) == 0:
                     break
-                state.nimming(randomAgent(state))
+                stateCopy.nimming(randomAgent(stateCopy))
+            
             agent.learn()
-
-            state = Nim(NIM_SIZE)
-
-
-            # get a history of number of steps taken to plot later
-            # if i % 250 == 0:
-            #     print(f"{i}: done")
-            #     moveHistory.append(agent.G)
-            #     indices.append(i)
         
-        return agent.G
-    
-    policy = func1()
-    # print(policy)
-    print(policy[(1, 3, 2)])
-    possibleStates = cookStatus(state)["bruteForce"]
-    ply = max(((s[0], policy[s[1]]) for s in possibleStates if s[1] in policy), key=lambda i: i[1])
-    print(ply[1])
-    return NimPly(ply[0][0], ply[0][1])
-    # ply = max(((s[0], policy[s[1]]) for s in possibleStates if s[1] in policy), key=lambda i: i[1])[0]
-    # return NimPly(ply[0], ply[1])
-
-
-
+    return agent.G
 
 
 def evaluate(agent1: Callable, agent2: Callable) -> float:
@@ -386,46 +357,40 @@ def simulate(agent1: Callable, agent2: Callable) -> None:
         player = 1 - player
     print(f"status: {match[1 - player].__name__} won!")
 
-startTime = time.time()
 if __name__ == "__main__":
     
-    ## custom game:
-    # simulate(expertSystem, minMax)
+    # custom game:
+    simulate(expertSystem, minMax)
 
-    ## Task 3.1:
-    # resultHistory = []
-    # for i in range(10):
-    #     result = evaluate(expertSystem, randomAgent)
-    #     resultHistory.append(result)
-    # print(resultHistory)
-    
-    ## resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    
-    ## Task 3.2:
+    # Task 3.1:
+    resultHistory = []
+    for i in range(10):
+        result = evaluate(expertSystem, randomAgent)
+        resultHistory.append(result)
+    print(resultHistory)
+        
+    # Task 3.2:
     # rules = GA(50, 10, 30)
     # print(rules)
     # rules = [0.126, 0.372, 0.27, 0.074, 0.948, 0.128, 0.203, 0.733, 0.516, 0.982, 0.523, 0.549]
-    # rules = [0.708, 0.431, 0.43000000000000005, 0.693, 0.649, 0.78, 0.458, 0.575, 0.047000000000000014, 0.938, 0.349, 0.148]
-    # resultHistory = []
-    # for i in range(10):
-    #     result = evaluate(evolvedRules(rules), randomAgent)
-    #     resultHistory.append(result)
-    # print(resultHistory)
+    rules = [0.708, 0.431, 0.43000000000000005, 0.693, 0.649, 0.78, 0.458, 0.575, 0.047000000000000014, 0.938, 0.349, 0.148]
+    resultHistory = []
+    for i in range(10):
+        result = evaluate(evolvedRules(rules), randomAgent)
+        resultHistory.append(result)
+    print(resultHistory)
     
-    ## resultHistory: [0.55, 0.7, 0.8, 0.5, 0.9, 0.6, 0.65, 0.55, 0.75, 0.6]
-
-    ## Task 3.3:
-    # resultHistory = []
-    # for i in range(10):
-    #     result = evaluate(minMax, evolvedRules(rules))
-    #     resultHistory.append(result)
-    # print(resultHistory)
-
-    ## resultHistory: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    # Task 3.3:
+    resultHistory = []
+    for i in range(10):
+        result = evaluate(minMax, randomAgent)
+        resultHistory.append(result)
+    print(resultHistory)
 
     ## Task 3.4:
-    # print(expertSystem(Nim(NIM_SIZE)))
-    print(RLAgent(Nim(NIM_SIZE)))
-
-
-    print(f'total time: {time.time() - startTime}')
+    policy = learning(Nim(NIM_SIZE))
+    resultHistory = []
+    for i in range(10):
+        result = evaluate(RLAgent(policy), randomAgent)
+        resultHistory.append(result)
+    print(resultHistory)
