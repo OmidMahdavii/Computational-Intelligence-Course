@@ -20,7 +20,7 @@ The task is implemented by the following people:
 
 * Task 3.2: `evolvedRules` agent makes a move according to the current state of the game and some rules. The consideration of different rules is based on some parameters. These parameters are determined via a genetic algorithm `GA` through an arbitrary number of generations. The final set of parameters used for the evaluation step is the following:
 
-  `rules = [0.249, 0.401, 0.453, 0.103, 0.89, 0.187, 0.616, 0.630, 0.571, 0.897, 0.196, 0.193]`
+  `rules = [0.708, 0.431, 0.43000000000000005, 0.693, 0.649, 0.78, 0.458, 0.575, 0.047000000000000014, 0.938, 0.349, 0.148]`
 
 ### Evaluations
 
